@@ -28,6 +28,7 @@ public class FileOutputer {
 			FileWriter fw = new FileWriter(path + fileName, true);
 			for (String[] d : data) {
 				String buf = String.join(separator, d);
+				System.out.println(buf);
 				fw.write(buf);
 				fw.write("\r\n");
 			}
