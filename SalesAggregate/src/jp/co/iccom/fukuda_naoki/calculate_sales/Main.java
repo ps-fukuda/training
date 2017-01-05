@@ -8,26 +8,34 @@ import java.util.List;
 import java.util.Map;
 
 public class Main {
+	private String moneyErrorMsg = "";
 
 	public static void main(String[] args) {
 		String dirPath = args[0] + "/";
 		List<String[]> branchList = new ArrayList<String[]>();
 		List<String[]> productList = new ArrayList<String[]>();
+		Map<String, Integer> braMap = new HashMap<String, Integer>();
+		Map<String, Integer> comMap = new HashMap<String, Integer>();
 
 		FileImporter fi = new FileImporter(dirPath);
 		try {
 			fi.Branch();
 			branchList = fi.getFileContents();
-			fi.Product();
+			fi.Commodity();
 			productList = fi.getFileContents();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		File dir = new File(dirPath);
-		String[] files = dir.list(new rcdCheck());
+		String[] files = dir.list(new ExtentFilter());
 		List<SalesData> salesAll = fi.getRcdContents(files);
-		Map<String, Integer> braMap = getBraSummary(salesAll);
-		Map<String, Integer> comMap = getComSummary(salesAll);
+		try {
+			Summary summary = new Summary();
+			braMap = summary.getBraSummary(salesAll);
+			comMap = summary.getComSummary(salesAll);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		FileOutputer fo = new FileOutputer(dirPath);
 		// 支店別集計ファイルの出力
@@ -44,40 +52,10 @@ public class Main {
 	        System.out.println("val : " + map.get(key));
 	    }*/
 	}
-
-	public static Map<String, Integer> getBraSummary(List<SalesData> list) {
-		Map<String, Integer> map = new HashMap<String, Integer>();
-		for (SalesData d : list) {
-			// mapに既にキーが存在しているか
-			if (map.containsKey(d.getBraCode())) {
-				// mapから既存値を取得後に合算
-				map.put(d.getBraCode(), map.get(d.getBraCode()) + d.getProfit());
-			} else {
-				map.put(d.getBraCode(), d.getProfit());
-			}
-		}
-		return map;
-	}
-
-	public static Map<String, Integer> getComSummary(List<SalesData> list) {
-		Map<String, Integer> map = new HashMap<String, Integer>();
-		for (SalesData d : list) {
-			// mapに既にキーが存在しているか
-			if (map.containsKey(d.getComCode())) {
-				// mapから既存値を取得後に合算
-				map.put(d.getComCode(), map.get(d.getComCode()) + d.getProfit());
-			} else {
-				map.put(d.getComCode(), d.getProfit());
-			}
-		}
-		return map;
-	}
 }
 
-class rcdCheck implements FilenameFilter {
-	private String namePattern = "[0-9]{8}.rcd";
-
+class ExtentFilter implements FilenameFilter {
 	public boolean accept(File dir, String name) {
-		return name.matches(namePattern);
+		return name.matches("[0-9]{8}.rcd");
 	}
 }

@@ -28,7 +28,7 @@ class FileImporter {
 		this.codePattern = "[0-9]{3}";
 	}
 
-	void Product() {
+	void Commodity() {
 		this.fileName = "commodity.lst";
 		this.notFoundError = "商品定義ファイルが存在しません";
 		this.formatError = "商品定義ファイルのフォーマットが不正です";
