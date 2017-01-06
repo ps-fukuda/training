@@ -1,5 +1,6 @@
 package jp.co.iccom.fukuda_naoki.calculate_sales;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +26,11 @@ public class FileOutputer {
 
 	public void output(List<ResultData> data) {
 		try {
+			File file = new File(path + fileName);
+			if (file.exists()) {
+				file.delete();
+				file.createNewFile();
+			}
 			FileWriter fw = new FileWriter(path + fileName, true);
 			for (ResultData d : data) {
 				fw.write(d.getData());
