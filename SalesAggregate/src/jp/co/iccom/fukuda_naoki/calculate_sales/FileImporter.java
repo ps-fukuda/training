@@ -59,23 +59,31 @@ class FileImporter {
 		return list;
 	}
 
-	List<Map<String, Long>> getRcdContents(String[] files, int index) {
+	List<Map<String, Long>> getRcdContents(String[] files, List<String> codeList, int index) throws Exception {
 		List<Map<String, Long>> mapList = new ArrayList<>();
+		String codeName = "";
+
+		if (index == 0) {
+			codeName = "支店";
+		} else if (index == 1) {
+			codeName = "商品";
+		}
+
 		for (String file : files) {
-			try {
-				byte[] fileContentBytes = Files.readAllBytes(Paths.get(path + file));
-				String contentStr = new String(fileContentBytes, StandardCharsets.UTF_8);
-				String[] contentList = contentStr.split("\r\n");
-				if (contentList.length != 3) {
-					System.out.println(file + "のフォーマットが不正です");
-					throw new IOException();
-				}
-				Map<String, Long> map = new HashMap<String, Long>();
-				map.put(contentList[index], (long)Integer.parseInt(contentList[2]));
-				mapList.add(map);
-			} catch (Exception e) {
-				//
+			byte[] fileContentBytes = Files.readAllBytes(Paths.get(path + file));
+			String contentStr = new String(fileContentBytes, StandardCharsets.UTF_8);
+			String[] contentList = contentStr.split("\r\n");
+			if (contentList.length != 3) {
+				System.out.println(file + "のフォーマットが不正です");
+				throw new Exception();
 			}
+			if (!codeList.contains(contentList[0])) {
+				System.out.println(file + "の" + codeName + "コードが不正です");
+				throw new Exception();
+			}
+			Map<String, Long> map = new HashMap<String, Long>();
+			map.put(contentList[index], (long)Integer.parseInt(contentList[2]));
+			mapList.add(map);
 		}
 		return mapList;
 	}
