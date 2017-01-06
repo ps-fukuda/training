@@ -8,49 +8,42 @@ import java.util.List;
 import java.util.Map;
 
 public class Main {
-	private String moneyErrorMsg = "";
-
 	public static void main(String[] args) {
 		String dirPath = args[0] + "/";
 		List<String[]> branchList = new ArrayList<String[]>();
 		List<String[]> productList = new ArrayList<String[]>();
-		Map<String, Integer> braMap = new HashMap<String, Integer>();
-		Map<String, Integer> comMap = new HashMap<String, Integer>();
+		Map<String, Long> branchSummaryMap = new HashMap<String, Long>();
+		Map<String, Long> commoditySummaryMap = new HashMap<String, Long>();
 
-		FileImporter fi = new FileImporter(dirPath);
+		FileImporter fileImporter = new FileImporter(dirPath);
 		try {
-			fi.Branch();
-			branchList = fi.getFileContents();
-			fi.Commodity();
-			productList = fi.getFileContents();
+			fileImporter.Branch();
+			branchList = fileImporter.getFileContents();
+			fileImporter.Commodity();
+			productList = fileImporter.getFileContents();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		File dir = new File(dirPath);
 		String[] files = dir.list(new ExtentFilter());
-		List<SalesData> salesAll = fi.getRcdContents(files);
+		List<Map<String, Long>> branchSalesData = fileImporter.getRcdContents(files, 0);
+		List<Map<String, Long>> CommoditySalesData = fileImporter.getRcdContents(files, 1);
 		try {
 			Summary summary = new Summary();
-			braMap = summary.getBraSummary(salesAll);
-			comMap = summary.getComSummary(salesAll);
+			branchSummaryMap = summary.getSummary(branchSalesData);
+			commoditySummaryMap = summary.getSummary(CommoditySalesData);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		FileOutputer fo = new FileOutputer(dirPath);
+		FileOutputer fileOutputer = new FileOutputer(dirPath);
 		// 支店別集計ファイルの出力
-		fo.Branch();
-		List<String[]> braResult = fo.changeResultFormat(branchList, braMap);
-		fo.fileOutput(braResult);
+		fileOutputer.Branch();
+		List<String[]> branchResult = fileOutputer.changeResultFormat(branchList, branchSummaryMap);
+		fileOutputer.output(branchResult);
 		// 商品別集計ファイルの出力
-		fo.Commodity();
-		List<String[]> comResult = fo.changeResultFormat(productList, comMap);
-		fo.fileOutput(comResult);
-
-		// HashMapCheck
-	    /*for (String key : map.keySet()) {
-	        System.out.println("val : " + map.get(key));
-	    }*/
+		fileOutputer.Commodity();
+		List<String[]> commodityResult = fileOutputer.changeResultFormat(productList, commoditySummaryMap);
+		fileOutputer.output(commodityResult);
 	}
 }
 

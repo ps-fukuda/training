@@ -23,12 +23,11 @@ public class FileOutputer {
 		this.fileName = "commodity.out";
 	}
 
-	public void fileOutput(List<String[]> data) {
+	public void output(List<String[]> data) {
 		try {
 			FileWriter fw = new FileWriter(path + fileName, true);
 			for (String[] d : data) {
 				String buf = String.join(separator, d);
-				System.out.println(buf);
 				fw.write(buf);
 				fw.write("\r\n");
 			}
@@ -38,7 +37,7 @@ public class FileOutputer {
 		}
 	}
 
-	public List<String[]> changeResultFormat(List<String[]> data, Map<String, Integer> map) {
+	public List<String[]> changeResultFormat(List<String[]> data, Map<String, Long> map) {
 		List<String[]> result = new ArrayList<>();
 		for (String[] d : data) {
 			if (map.containsKey(d[0])) {

@@ -7,7 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class FileImporter {
 	private String path;
@@ -57,8 +59,8 @@ class FileImporter {
 		return list;
 	}
 
-	List<SalesData> getRcdContents(String[] files) {
-		List<SalesData> listAll = new ArrayList<>();
+	List<Map<String, Long>> getRcdContents(String[] files, int index) {
+		List<Map<String, Long>> mapList = new ArrayList<>();
 		for (String file : files) {
 			try {
 				byte[] fileContentBytes = Files.readAllBytes(Paths.get(path + file));
@@ -68,11 +70,13 @@ class FileImporter {
 					System.out.println(file + "のフォーマットが不正です");
 					throw new IOException();
 				}
-				listAll.add(new SalesData(contentList));
+				Map<String, Long> map = new HashMap<String, Long>();
+				map.put(contentList[index], (long)Integer.parseInt(contentList[2]));
+				mapList.add(map);
 			} catch (Exception e) {
 				//
 			}
 		}
-		return listAll;
+		return mapList;
 	}
 }
