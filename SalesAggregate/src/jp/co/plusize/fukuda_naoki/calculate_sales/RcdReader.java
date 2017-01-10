@@ -16,9 +16,7 @@ public class RcdReader {
 	}
 
 	Map<String, Long> checkRcdFile(File[] files, Map<String, Long> salesList, int index) throws Exception {
-		String codeName = "";
-		if (index == 0) codeName = "支店";
-		if (index == 1) codeName = "商品";
+		String codeName = (index == BRANCH) ? "支店" : "商品";
 		String separator = System.getProperty("line.separator");
 
 		for (File file : files) {
