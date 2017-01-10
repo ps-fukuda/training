@@ -3,11 +3,8 @@ package jp.co.iccom.fukuda_naoki.calculate_sales;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 class FileImporter {
 	private String path;
@@ -35,44 +32,40 @@ class FileImporter {
 		this.codePattern = "[a-zA-Z0-9]{8}";
 	}
 
-	List<String[]> getFileContents() throws Exception {
-		List<String[]> list = new ArrayList<>();
+	Map<String, String> getFileContents() {
+		Map<String, String> map = new HashMap<String, String>();
+		FileReader fr = null;
 		try {
-			FileReader fr = new FileReader(path + fileName);
+			fr = new FileReader(path + fileName);
 			BufferedReader br = new BufferedReader(fr);
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] item = line.split(",");
 				if (item[0].matches(codePattern) && item[1].matches(namePattern)) {
-					list.add(item);
+					map.put(item[0], item[1]);
 				} else {
 					System.out.println(formatError);
-					throw new Exception();
+					System.exit(1);
 				}
 			}
 		} catch (IOException e) {
 			System.out.println(notFoundError);
-			throw new Exception();
-		}
-		return list;
-	}
-
-	List<SalesData> getRcdContents(String[] files) {
-		List<SalesData> listAll = new ArrayList<>();
-		for (String file : files) {
+			System.exit(1);
+		} finally {
 			try {
-				byte[] fileContentBytes = Files.readAllBytes(Paths.get(path + file));
-				String contentStr = new String(fileContentBytes, StandardCharsets.UTF_8);
-				String[] contentList = contentStr.split("\r\n");
-				if (contentList.length != 3) {
-					System.out.println(file + "のフォーマットが不正です");
-					throw new IOException();
-				}
-				listAll.add(new SalesData(contentList));
-			} catch (Exception e) {
-				//
+				if (fr != null) fr.close();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
-		return listAll;
+		return map;
+	}
+
+	Map<String, Long> genSalesMap(Map<String, String> nameMap) {
+		Map<String, Long> salesMap = new HashMap<String, Long>();
+		for (String key : nameMap.keySet()) {
+			salesMap.put(key, (long)0);
+		}
+		return salesMap;
 	}
 }
