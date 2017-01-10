@@ -24,7 +24,7 @@ public class FileOutputer {
 		this.fileName = "commodity.out";
 	}
 
-	public void output(Map<String, String> names, List<Entry<String, Long>> sales) {
+	public void output(Map<String, String> names, List<Entry<String, Long>> sales) throws Exception {
 		String separator = System.getProperty("line.separator");
 		try {
 			File file = new File(path, fileName);
@@ -40,6 +40,7 @@ public class FileOutputer {
 			fw.close();
 		} catch (IOException e) {
 			System.out.println("予期せぬエラーが発生しました");
+			throw new Exception();
 		}
 	}
 }
