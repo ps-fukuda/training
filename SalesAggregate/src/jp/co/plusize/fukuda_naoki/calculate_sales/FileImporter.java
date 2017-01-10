@@ -1,4 +1,4 @@
-package jp.co.iccom.fukuda_naoki.calculate_sales;
+package jp.co.plusize.fukuda_naoki.calculate_sales;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
