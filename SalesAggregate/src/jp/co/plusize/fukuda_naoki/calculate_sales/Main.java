@@ -50,16 +50,14 @@ public class Main {
 		List<Entry<String, Long>> commoditySalesSortedList = sortList(commoditySalesList);
 		// output
 		FileOutputer fileOutputer = new FileOutputer(dirPath);
-		try {
-			// 支店別集計ファイルの出力
-			fileOutputer.initBranch();
-			fileOutputer.output(branchNamesList, branchSalesSortedList);
-			// 商品別集計ファイルの出力
-			fileOutputer.initCommodity();
-			fileOutputer.output(commodityNamesList, commoditySalesSortedList);
-		} catch (Exception e) {
-			return;
-		}
+
+		// 支店別集計ファイルの出力
+		fileOutputer.initBranch();
+		if (!fileOutputer.output(branchNamesList, branchSalesSortedList)) return;
+		// 商品別集計ファイルの出力
+		fileOutputer.initCommodity();
+		if (!fileOutputer.output(commodityNamesList, commoditySalesSortedList)) return;
+
 	}
 
 	static List<Entry<String, Long>> sortList(Map<String, Long> map) {
