@@ -3,12 +3,7 @@ package jp.co.iccom.fukuda_naoki.calculate_sales;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 class FileImporter {
@@ -37,54 +32,40 @@ class FileImporter {
 		this.codePattern = "[a-zA-Z0-9]{8}";
 	}
 
-	List<String[]> getFileContents() throws Exception {
-		List<String[]> list = new ArrayList<>();
+	Map<String, String> getFileContents() {
+		Map<String, String> map = new HashMap<String, String>();
+		FileReader fr = null;
 		try {
-			FileReader fr = new FileReader(path + fileName);
+			fr = new FileReader(path + fileName);
 			BufferedReader br = new BufferedReader(fr);
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] item = line.split(",");
 				if (item[0].matches(codePattern) && item[1].matches(namePattern)) {
-					list.add(item);
+					map.put(item[0], item[1]);
 				} else {
 					System.out.println(formatError);
-					throw new Exception();
+					System.exit(1);
 				}
 			}
 		} catch (IOException e) {
 			System.out.println(notFoundError);
-			throw new Exception();
+			System.exit(1);
+		} finally {
+			try {
+				if (fr != null) fr.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		return list;
+		return map;
 	}
 
-	List<Map<String, Long>> getRcdContents(String[] files, List<String> codeList, int index) throws Exception {
-		List<Map<String, Long>> mapList = new ArrayList<>();
-		String codeName = "";
-
-		if (index == 0) {
-			codeName = "支店";
-		} else if (index == 1) {
-			codeName = "商品";
+	Map<String, Long> genSalesMap(Map<String, String> nameMap) {
+		Map<String, Long> salesMap = new HashMap<String, Long>();
+		for (String key : nameMap.keySet()) {
+			salesMap.put(key, (long)0);
 		}
-
-		for (String file : files) {
-			byte[] fileContentBytes = Files.readAllBytes(Paths.get(path + file));
-			String contentStr = new String(fileContentBytes, StandardCharsets.UTF_8);
-			String[] contentList = contentStr.split("\r\n");
-			if (contentList.length != 3) {
-				System.out.println(file + "のフォーマットが不正です");
-				throw new Exception();
-			}
-			if (!codeList.contains(contentList[0])) {
-				System.out.println(file + "の" + codeName + "コードが不正です");
-				throw new Exception();
-			}
-			Map<String, Long> map = new HashMap<String, Long>();
-			map.put(contentList[index], (long)Integer.parseInt(contentList[2]));
-			mapList.add(map);
-		}
-		return mapList;
+		return salesMap;
 	}
 }

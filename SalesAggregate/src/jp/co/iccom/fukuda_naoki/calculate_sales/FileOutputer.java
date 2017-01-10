@@ -3,9 +3,9 @@ package jp.co.iccom.fukuda_naoki.calculate_sales;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class FileOutputer {
 	String path;
@@ -24,7 +24,7 @@ public class FileOutputer {
 		this.fileName = "commodity.out";
 	}
 
-	public void output(List<ResultData> data) {
+	public void output(Map<String, String> names, List<Entry<String, Long>> sales) {
 		try {
 			File file = new File(path + fileName);
 			if (file.exists()) {
@@ -32,8 +32,8 @@ public class FileOutputer {
 				file.createNewFile();
 			}
 			FileWriter fw = new FileWriter(path + fileName, true);
-			for (ResultData d : data) {
-				fw.write(d.getData());
+			for (Entry<String, Long> s : sales) {
+				fw.write(s.getKey() + "," + names.get(s.getKey()) + "," + s.getValue());
 				fw.write("\r\n");
 			}
 			fw.close();
@@ -42,15 +42,24 @@ public class FileOutputer {
 		}
 	}
 
-	public List<ResultData> changeResultFormat(List<String[]> data, Map<String, Long> map) {
-		List<ResultData> result = new ArrayList<>();
-		for (String[] d : data) {
-			if (map.containsKey(d[0])) {
-				result.add(new ResultData(d[0], d[1], map.get(d[0])));
-			} else {
-				result.add(new ResultData(d[0], d[1], 0));
-			}
+	/*public void output(Map<String, String> names, Map<String, Long> sales) {
+		for (String s : sales.keySet()) {
+			System.out.println(s + ":" + sales.get(s));
 		}
-		return result;
-	}
+		try {
+			File file = new File(path + fileName);
+			if (file.exists()) {
+				file.delete();
+				file.createNewFile();
+			}
+			FileWriter fw = new FileWriter(path + fileName, true);
+			for (String key : sales.keySet()) {
+				fw.write(key + "," + names.get(key) + "," + sales.get(key));
+				fw.write("\r\n");
+			}
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}*/
 }

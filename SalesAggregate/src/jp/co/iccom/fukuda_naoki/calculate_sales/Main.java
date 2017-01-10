@@ -4,34 +4,39 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class Main {
 	public static void main(String[] args) {
-		String dirPath = args[0] + "/";
-		List<String[]> branchList = new ArrayList<String[]>();
-		List<String[]> productList = new ArrayList<String[]>();
-		Map<String, Long> branchSummaryMap = new HashMap<String, Long>();
-		Map<String, Long> commoditySummaryMap = new HashMap<String, Long>();
-		List<Map<String, Long>> branchSalesData = new ArrayList<>();
-		List<Map<String, Long>> commoditySalesData = new ArrayList<>();;
+		String dirPath;
+		if (args.length != 1) {
+			System.out.println("予期せぬエラーが発生しました");
+			System.exit(1);
+		}
+		if (args[0].endsWith("/")) {
+			dirPath = args[0];
+		} else {
+			dirPath = args[0] + "/";
+		}
+		Map<String, String> branchNamesList = new HashMap<String, String>();
+		Map<String, String> commodityNamesList = new HashMap<String, String>();
 
 		FileImporter fileImporter = new FileImporter(dirPath);
-		try {
-			fileImporter.Branch();
-			branchList = fileImporter.getFileContents();
-			fileImporter.Commodity();
-			productList = fileImporter.getFileContents();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		List<String> codeList = getDefineCodeList(branchList, productList);
-
+		fileImporter.Branch();
+		branchNamesList = fileImporter.getFileContents();
+		fileImporter.Commodity();
+		commodityNamesList = fileImporter.getFileContents();
+		// NamesListを元にSalesListを作成
+		Map<String, Long> branchSalesList = fileImporter.genSalesMap(branchNamesList);
+		Map<String, Long> commoditySalesList = fileImporter.genSalesMap(commodityNamesList);
+		// rcdファイル一覧を取得
 		File dir = new File(dirPath);
 		String[] files = dir.list(new ExtentFilter());
-		// 連番の歯抜けチェック
+		// rcdファイルの連番の歯抜けチェック
 		try {
 			if (!fileNameCheck(files)) {
 				System.out.println("売上ファイル名が連番になっていません");
@@ -41,57 +46,55 @@ public class Main {
 			e.printStackTrace();
 		}
 		// 0:branch 1:commodity
+		Summary summary = new Summary(dirPath);
 		try {
-			branchSalesData = fileImporter.getRcdContents(files, codeList, 0);
-			commoditySalesData = fileImporter.getRcdContents(files, codeList, 1);
+			branchSalesList = summary.checkRcdFile(files, branchSalesList, 0);
+			commoditySalesList = summary.checkRcdFile(files, commoditySalesList, 1);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		try {
-			Summary summary = new Summary();
-			branchSummaryMap = summary.getSummary(branchSalesData);
-			commoditySummaryMap = summary.getSummary(commoditySalesData);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+		// sort
+		List<Map.Entry<String, Long>> branchSalesSortedList = sortList(branchSalesList);
+		List<Map.Entry<String, Long>> commoditySalesSortedList = sortList(commoditySalesList);
+		// output
 		FileOutputer fileOutputer = new FileOutputer(dirPath);
 		// 支店別集計ファイルの出力
 		fileOutputer.Branch();
-		List<ResultData> branchResult = fileOutputer.changeResultFormat(branchList, branchSummaryMap);
-		Collections.sort(branchResult);
-		fileOutputer.output(branchResult);
+		fileOutputer.output(branchNamesList, branchSalesSortedList);
 		// 商品別集計ファイルの出力
 		fileOutputer.Commodity();
-		List<ResultData> commodityResult = fileOutputer.changeResultFormat(productList, commoditySummaryMap);
-		Collections.sort(commodityResult);
-		fileOutputer.output(commodityResult);
+		fileOutputer.output(commodityNamesList, commoditySalesSortedList);
+	}
+
+	static List<Map.Entry<String, Long>> sortList(Map<String, Long> map) {
+		List<Entry<String, Long>> entryMap = new ArrayList<Entry<String, Long>>(map.entrySet());
+		Collections.sort(entryMap, new Comparator<Entry<String, Long>>() {
+		    @Override
+		    public int compare(Entry<String, Long> o1, Entry<String, Long> o2) {
+		        return o2.getValue().compareTo(o1.getValue());
+		    }
+		});
+		return entryMap;
 	}
 
 	static boolean fileNameCheck(String[] files) {
+		String pattern = "[0-9]{8}";
 		for (int i=0; i<files.length; i++) {
 			String name = files[i].split("\\.")[0];
+			if (!name.matches(pattern)) {
+				System.out.println("売上ファイル名が連番になっていません");
+				System.exit(1);
+			}
 			if ((i+1) != Integer.parseInt(name)) {
 				return false;
 			}
 		}
 		return true;
 	}
-
-	static List<String> getDefineCodeList(List<String[]> branchList, List<String[]> productList) {
-		List<String> codeList = new ArrayList<>();
-		for (String[] list : branchList) {
-			codeList.add(list[0]);
-		}
-		for (String[] list : productList) {
-			codeList.add(list[0]);
-		}
-		return codeList;
-	}
 }
 
 class ExtentFilter implements FilenameFilter {
 	public boolean accept(File dir, String name) {
-		return name.matches("[0-9]{8}.rcd");
+		return name.endsWith(".rcd");
 	}
 }
