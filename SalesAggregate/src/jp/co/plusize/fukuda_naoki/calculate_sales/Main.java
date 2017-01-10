@@ -12,15 +12,10 @@ import java.util.Map.Entry;
 
 public class Main {
 	public static void main(String[] args) {
-		String dirPath;
+		String dirPath = args[0];
 		if (args.length != 1) {
 			System.out.println("予期せぬエラーが発生しました");
 			System.exit(1);
-		}
-		if (args[0].endsWith("/")) {
-			dirPath = args[0];
-		} else {
-			dirPath = args[0] + "/";
 		}
 		Map<String, String> branchNamesList = new HashMap<String, String>();
 		Map<String, String> commodityNamesList = new HashMap<String, String>();
@@ -28,23 +23,16 @@ public class Main {
 		FileImporter fileImporter = new FileImporter(dirPath);
 		fileImporter.Branch();
 		branchNamesList = fileImporter.getFileContents();
+		if (branchNamesList == null) return;
 		fileImporter.Commodity();
 		commodityNamesList = fileImporter.getFileContents();
+		if (commodityNamesList == null) return;
 		// NamesListを元にSalesListを作成
 		Map<String, Long> branchSalesList = fileImporter.genSalesMap(branchNamesList);
 		Map<String, Long> commoditySalesList = fileImporter.genSalesMap(commodityNamesList);
 		// rcdファイル一覧を取得
 		File dir = new File(dirPath);
 		String[] files = dir.list(new ExtentFilter());
-		// rcdファイルの連番の歯抜けチェック
-		try {
-			if (!fileNameCheck(files)) {
-				System.out.println("売上ファイル名が連番になっていません");
-				throw new Exception();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		// 0:branch 1:commodity
 		Summary summary = new Summary(dirPath);
 		try {
@@ -95,6 +83,7 @@ public class Main {
 
 class ExtentFilter implements FilenameFilter {
 	public boolean accept(File dir, String name) {
-		return name.endsWith(".rcd");
+		String pattern = "^[0-9]{8}.rcd$";
+		return name.matches(pattern) && dir.isFile();
 	}
 }

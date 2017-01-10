@@ -16,17 +16,22 @@ public class Summary {
 		String codeName = "";
 		if (index == 0) codeName = "支店";
 		if (index == 1) codeName = "商品";
+		String separator = System.getProperty("line.separator");
 
 		for (String file : files) {
-			byte[] fileContentBytes = Files.readAllBytes(Paths.get(path + file));
+			byte[] fileContentBytes = Files.readAllBytes(Paths.get(path, file));
 			String rcdStr = new String(fileContentBytes, StandardCharsets.UTF_8);
-			String[] rcdList = rcdStr.split("\r\n");
+			String[] rcdList = rcdStr.split(separator);
 			if (rcdList.length != 3) {
 				System.out.println(file + "のフォーマットが不正です");
 				throw new Exception();
 			}
 			if (!salesList.containsKey(rcdList[index])) {
 				System.out.println(file + "の" + codeName + "コードが不正です");
+				throw new Exception();
+			}
+			if (!rcdList[2].matches("[0-9]+")) {
+				System.out.println("予期せぬエラーが発生しました");
 				throw new Exception();
 			}
 			long total = salesList.get(rcdList[index]) + Long.parseLong(rcdList[2]);

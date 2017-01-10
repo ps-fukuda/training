@@ -25,6 +25,7 @@ public class FileOutputer {
 	}
 
 	public void output(Map<String, String> names, List<Entry<String, Long>> sales) {
+		String separator = System.getProperty("line.separator");
 		try {
 			File file = new File(path + fileName);
 			if (file.exists()) {
@@ -34,7 +35,7 @@ public class FileOutputer {
 			FileWriter fw = new FileWriter(path + fileName, true);
 			for (Entry<String, Long> s : sales) {
 				fw.write(s.getKey() + "," + names.get(s.getKey()) + "," + s.getValue());
-				fw.write("\r\n");
+				fw.write(separator);
 			}
 			fw.close();
 		} catch (IOException e) {
