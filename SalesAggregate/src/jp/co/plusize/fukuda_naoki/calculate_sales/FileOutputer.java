@@ -16,51 +16,30 @@ public class FileOutputer {
 		this.path = dirPath;
 	}
 
-	void Branch() {
+	void initBranch() {
 		this.fileName = "branch.out";
 	}
 
-	void Commodity() {
+	void initCommodity() {
 		this.fileName = "commodity.out";
 	}
 
 	public void output(Map<String, String> names, List<Entry<String, Long>> sales) {
 		String separator = System.getProperty("line.separator");
 		try {
-			File file = new File(path + fileName);
+			File file = new File(path, fileName);
 			if (file.exists()) {
 				file.delete();
 				file.createNewFile();
 			}
-			FileWriter fw = new FileWriter(path + fileName, true);
+			FileWriter fw = new FileWriter(new File(path, fileName), true);
 			for (Entry<String, Long> s : sales) {
 				fw.write(s.getKey() + "," + names.get(s.getKey()) + "," + s.getValue());
 				fw.write(separator);
 			}
 			fw.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("予期せぬエラーが発生しました");
 		}
 	}
-
-	/*public void output(Map<String, String> names, Map<String, Long> sales) {
-		for (String s : sales.keySet()) {
-			System.out.println(s + ":" + sales.get(s));
-		}
-		try {
-			File file = new File(path + fileName);
-			if (file.exists()) {
-				file.delete();
-				file.createNewFile();
-			}
-			FileWriter fw = new FileWriter(path + fileName, true);
-			for (String key : sales.keySet()) {
-				fw.write(key + "," + names.get(key) + "," + sales.get(key));
-				fw.write("\r\n");
-			}
-			fw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}*/
 }

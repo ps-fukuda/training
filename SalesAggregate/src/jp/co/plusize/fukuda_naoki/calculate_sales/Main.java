@@ -12,19 +12,19 @@ import java.util.Map.Entry;
 
 public class Main {
 	public static void main(String[] args) {
-		String dirPath = args[0];
 		if (args.length != 1) {
 			System.out.println("予期せぬエラーが発生しました");
-			System.exit(1);
+			return;
 		}
+		String dirPath = args[0];
 		Map<String, String> branchNamesList = new HashMap<String, String>();
 		Map<String, String> commodityNamesList = new HashMap<String, String>();
 
 		FileImporter fileImporter = new FileImporter(dirPath);
-		fileImporter.Branch();
+		fileImporter.initBranch();
 		branchNamesList = fileImporter.getFileContents();
 		if (branchNamesList == null) return;
-		fileImporter.Commodity();
+		fileImporter.initCommodity();
 		commodityNamesList = fileImporter.getFileContents();
 		if (commodityNamesList == null) return;
 		// NamesListを元にSalesListを作成
@@ -32,30 +32,34 @@ public class Main {
 		Map<String, Long> commoditySalesList = fileImporter.genSalesMap(commodityNamesList);
 		// rcdファイル一覧を取得
 		File dir = new File(dirPath);
-		String[] files = dir.list(new ExtentFilter());
-		// 0:branch 1:commodity
-		Summary summary = new Summary(dirPath);
+		File[] files = dir.listFiles(new ExtentFilter());
+		// 歯抜けチェック
+		if (!fileNameCheck(files)) {
+			System.out.println("売上ファイル名が連番になっていません");
+			return;
+		}
+		RcdReader rcdReader = new RcdReader(dirPath);
 		try {
-			branchSalesList = summary.checkRcdFile(files, branchSalesList, 0);
-			commoditySalesList = summary.checkRcdFile(files, commoditySalesList, 1);
+			branchSalesList = rcdReader.checkRcdFile(files, branchSalesList, RcdReader.BRANCH);
+			commoditySalesList = rcdReader.checkRcdFile(files, commoditySalesList, RcdReader.COMMODITY);
 		} catch (Exception e) {
-			e.printStackTrace();
+			return;
 		}
 		// sort
-		List<Map.Entry<String, Long>> branchSalesSortedList = sortList(branchSalesList);
-		List<Map.Entry<String, Long>> commoditySalesSortedList = sortList(commoditySalesList);
+		List<Entry<String, Long>> branchSalesSortedList = sortList(branchSalesList);
+		List<Entry<String, Long>> commoditySalesSortedList = sortList(commoditySalesList);
 		// output
 		FileOutputer fileOutputer = new FileOutputer(dirPath);
 		// 支店別集計ファイルの出力
-		fileOutputer.Branch();
+		fileOutputer.initBranch();
 		fileOutputer.output(branchNamesList, branchSalesSortedList);
 		// 商品別集計ファイルの出力
-		fileOutputer.Commodity();
+		fileOutputer.initCommodity();
 		fileOutputer.output(commodityNamesList, commoditySalesSortedList);
 	}
 
-	static List<Map.Entry<String, Long>> sortList(Map<String, Long> map) {
-		List<Entry<String, Long>> entryMap = new ArrayList<Entry<String, Long>>(map.entrySet());
+	static List<Entry<String, Long>> sortList(Map<String, Long> map) {
+		List<Entry<String, Long>> entryMap = new ArrayList<>(map.entrySet());
 		Collections.sort(entryMap, new Comparator<Entry<String, Long>>() {
 		    @Override
 		    public int compare(Entry<String, Long> o1, Entry<String, Long> o2) {
@@ -65,14 +69,9 @@ public class Main {
 		return entryMap;
 	}
 
-	static boolean fileNameCheck(String[] files) {
-		String pattern = "[0-9]{8}";
+	static boolean fileNameCheck(File[] files) {
 		for (int i=0; i<files.length; i++) {
-			String name = files[i].split("\\.")[0];
-			if (!name.matches(pattern)) {
-				System.out.println("売上ファイル名が連番になっていません");
-				System.exit(1);
-			}
+			String name = files[i].getName().split("\\.")[0];
 			if ((i+1) != Integer.parseInt(name)) {
 				return false;
 			}
@@ -84,6 +83,10 @@ public class Main {
 class ExtentFilter implements FilenameFilter {
 	public boolean accept(File dir, String name) {
 		String pattern = "^[0-9]{8}.rcd$";
-		return name.matches(pattern) && dir.isFile();
+		File file = new File(dir, name);
+		if (file.isDirectory()) {
+			return false;
+		}
+		return name.matches(pattern);
 	}
 }
