@@ -1,25 +1,28 @@
 package jp.co.plusize.fukuda_naoki.calculate_sales;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
-public class Summary {
+public class RcdReader {
 	public String path;
+	public static final int BRANCH = 0;
+	public static final int COMMODITY = 1;
 
-	Summary(String dirPath) {
+	RcdReader(String dirPath) {
 		this.path = dirPath;
 	}
 
-	Map<String, Long> checkRcdFile(String[] files, Map<String, Long> salesList, int index) throws Exception {
+	Map<String, Long> checkRcdFile(File[] files, Map<String, Long> salesList, int index) throws Exception {
 		String codeName = "";
 		if (index == 0) codeName = "支店";
 		if (index == 1) codeName = "商品";
 		String separator = System.getProperty("line.separator");
 
-		for (String file : files) {
-			byte[] fileContentBytes = Files.readAllBytes(Paths.get(path, file));
+		for (File file : files) {
+			byte[] fileContentBytes = Files.readAllBytes(Paths.get(path, file.getName()));
 			String rcdStr = new String(fileContentBytes, StandardCharsets.UTF_8);
 			String[] rcdList = rcdStr.split(separator);
 			if (rcdList.length != 3) {
