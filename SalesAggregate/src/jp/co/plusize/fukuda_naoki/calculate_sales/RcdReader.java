@@ -26,11 +26,11 @@ public class RcdReader {
 			String rcdStr = new String(fileContentBytes, StandardCharsets.UTF_8);
 			String[] rcdList = rcdStr.split(separator);
 			if (rcdList.length != 3) {
-				System.out.println(file + "のフォーマットが不正です");
+				System.out.println(file.getName() + "のフォーマットが不正です");
 				throw new Exception();
 			}
 			if (!salesList.containsKey(rcdList[index])) {
-				System.out.println(file + "の" + codeName + "コードが不正です");
+				System.out.println(file.getName() + "の" + codeName + "コードが不正です");
 				throw new Exception();
 			}
 			if (!rcdList[2].matches("[0-9]+")) {
