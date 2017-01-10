@@ -1,6 +1,7 @@
 package jp.co.plusize.fukuda_naoki.calculate_sales;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,11 +37,15 @@ class FileImporter {
 		Map<String, String> map = new HashMap<String, String>();
 		FileReader fr = null;
 		try {
-			fr = new FileReader(path + fileName);
+			fr = new FileReader(new File(path, fileName));
 			BufferedReader br = new BufferedReader(fr);
 			String line;
 			while ((line = br.readLine()) != null) {
 				String[] item = line.split(",");
+				if (item.length != 2) {
+					System.out.println(formatError);
+					return null;
+				}
 				if (item[0].matches(codePattern) && item[1].matches(namePattern)) {
 					map.put(item[0], item[1]);
 				} else {
@@ -50,6 +55,7 @@ class FileImporter {
 			}
 		} catch (IOException e) {
 			System.out.println(notFoundError);
+			e.printStackTrace();
 			System.exit(1);
 		} finally {
 			try {
