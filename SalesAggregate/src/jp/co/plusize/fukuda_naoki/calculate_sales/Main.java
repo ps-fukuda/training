@@ -86,9 +86,6 @@ class ExtentFilter implements FilenameFilter {
 	public boolean accept(File dir, String name) {
 		String pattern = "^[0-9]{8}.rcd$";
 		File file = new File(dir, name);
-		if (file.isDirectory()) {
-			return false;
-		}
-		return name.matches(pattern);
+		return file.isFile() && name.matches(pattern);
 	}
 }

@@ -38,22 +38,18 @@ class FileImporter {
 		Map<String, String> map = new HashMap<String, String>();
 		Path filePath = Paths.get(path, fileName);
 		try (BufferedReader reader = Files.newBufferedReader(filePath)) {
-			for(;;) {
-				String line = reader.readLine();
-				if (line != null) {
-					String[] item = line.split(",");
-					if (item.length != 2) {
-						System.out.println(formatError);
-						return null;
-					}
-					if (item[0].matches(codePattern) && item[1].matches(namePattern)) {
-						map.put(item[0], item[1]);
-					} else {
-						System.out.println(formatError);
-						return null;
-					}
+			String line;
+			while((line = reader.readLine()) != null) {
+				String[] item = line.split(",");
+				if (item.length != 2) {
+					System.out.println(formatError);
+					return null;
+				}
+				if (item[0].matches(codePattern) && item[1].matches(namePattern)) {
+					map.put(item[0], item[1]);
 				} else {
-					break;
+					System.out.println(formatError);
+					return null;
 				}
 			}
 		} catch (IOException e) {
@@ -66,7 +62,7 @@ class FileImporter {
 	Map<String, Long> genSalesMap(Map<String, String> nameMap) {
 		Map<String, Long> salesMap = new HashMap<String, Long>();
 		for (String key : nameMap.keySet()) {
-			salesMap.put(key, (long)0);
+			salesMap.put(key,0L);
 		}
 		return salesMap;
 	}
