@@ -36,7 +36,7 @@ public class RcdReader {
 				throw new Exception();
 			}
 			long total = salesList.get(rcdList[index]) + Long.parseLong(rcdList[2]);
-			if (String.valueOf(total).length() >= 10) {
+			if (String.valueOf(total).length() > 10) {
 				System.out.println("合計金額が10桁を超えました");
 				throw new Exception();
 			}
